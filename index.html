@@ -19,8 +19,16 @@
     user-select:none;-webkit-tap-highlight-color:transparent}
 
   .deck{position:fixed;inset:0;display:flex;transition:transform .7s var(--ease)}
+  /* flex-start (not center) + a padding-top floor: centering lets an
+     over-tall slide overflow equally on both edges, and on a short-enough
+     viewport the top half of that overflow runs into the fixed
+     brandmark/pageno. Anchoring to the top means only the (harmless,
+     no fixed content directly below most slides) bottom can ever be tight.
+     flex-shrink:0 on children stops flexbox from squeezing a card down to
+     its min-height instead of just letting the slide's own bottom go tight. */
   .slide{min-width:100vw;height:100vh;height:100dvh;position:relative;display:flex;flex-direction:column;
-    justify-content:center;padding:6vh 7vw;overflow:hidden}
+    justify-content:flex-start;padding:max(6vh,80px) 7vw 6vh;overflow:hidden}
+  .slide>*{flex-shrink:0}
   .slide.dark{background:var(--deep)}
   .slide.deeper{background:var(--deeper)}
   .slide.mid{background:var(--navy)}
@@ -47,6 +55,9 @@
   .brandmark span{color:var(--sage-lt)}
   .pageno{position:fixed;top:calc(30px + env(safe-area-inset-top));right:calc(28px + env(safe-area-inset-right));z-index:60;font-family:'Courier Prime',monospace;
     font-size:11px;letter-spacing:2px;color:var(--sage-lt)}
+  /* selbar and pageno share the same top-right corner at every viewport
+     size — the selection counter, when shown, always wins */
+  .pageno.eclipsed{display:none}
   /* selection counter (global) */
   .selbar{position:fixed;top:calc(24px + env(safe-area-inset-top));right:calc(28px + env(safe-area-inset-right));z-index:61;display:none;align-items:center;gap:14px}
   .selbar.show{display:flex}
@@ -56,6 +67,7 @@
   .selclear{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;
     color:var(--sage-lt);cursor:pointer;background:none;border:none;transition:color .25s}
   .selclear:hover{color:var(--carmim)}
+  .mob-scrim{display:none}
 
   .rv{opacity:0;transform:translateY(24px)}
   .slide.active .rv{animation:fadeUp .7s var(--ease) forwards}
@@ -65,12 +77,24 @@
   @keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
 
   /* ═══ CAPA ═══ */
+  /* pure vertical centering (the .slide default) lets an over-tall block
+     overflow equally on both edges; on shorter viewports a long headline
+     then pushes up into the fixed brandmark. Anchor to the top instead,
+     with a floor that always clears it, so only the (harmless) bottom can
+     ever be tight. */
+  .cover{justify-content:flex-start;padding-top:max(6vh,84px)}
   .cover .tag{font-family:'Courier Prime',monospace;font-size:12px;letter-spacing:3px;text-transform:uppercase;
-    color:var(--sage-lt);margin-bottom:36px}
-  .cover h1{font-size:clamp(38px,6.5vw,86px);max-width:14ch}
+    color:var(--sage-lt);margin-bottom:28px}
+  /* min(vw,vh) makes the headline yield to whichever dimension is tighter —
+     on a wide-but-short laptop screen it scales down with the height
+     instead of staying huge and pushing the rest of the block off-screen */
+  .cover h1{font-size:clamp(38px,min(6.5vw,7.2vh),86px);max-width:14ch}
   .cover .sub{font-size:clamp(16px,1.6vw,21px);font-weight:300;color:var(--sage-lt);max-width:46ch;
-    margin-top:26px;line-height:1.6}
-  .cover .hint{position:absolute;bottom:9vh;left:7vw;font-family:'Courier Prime',monospace;font-size:11px;
+    margin-top:22px;line-height:1.6}
+  /* in normal flow (not absolute+bottom-pinned) so it can never collide
+     with the heading above it — on shorter viewports a long headline
+     plus a bottom-pinned hint would otherwise overlap */
+  .cover .hint{margin-top:28px;font-family:'Courier Prime',monospace;font-size:11px;
     letter-spacing:1.5px;color:var(--sage);display:flex;align-items:center;gap:10px}
   .cover .hint svg{width:15px;height:15px}
 
@@ -78,8 +102,7 @@
   .cover .cov-video.show{opacity:1}
   .cover .cov-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(100deg,rgba(24,47,58,.94) 0%,rgba(24,47,58,.82) 45%,rgba(24,47,58,.52) 100%)}
   .cover .cov-overlay::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(18,39,48,.9),transparent 42%)}
-  .cover>.tag,.cover>h1,.cover>.sub{position:relative;z-index:2}
-  .cover .hint{z-index:2}
+  .cover>.tag,.cover>h1,.cover>.sub,.cover>.hint{position:relative;z-index:2}
   @media(prefers-reduced-motion:reduce){.cover .cov-video{display:none}}
 
   /* ═══ MAPA DE DORES ═══ */
@@ -100,7 +123,7 @@
   .pm-col.acute li::before{background:var(--carmim)}
 
   /* ═══ FLUXO / ESTEIRA ═══ */
-  .flow{padding:5vh 7vw}
+  .flow{padding:max(5vh,80px) 7vw 5vh}
   .flow h2{font-size:clamp(23px,3vw,40px);margin-bottom:6px}
   .flow .lead{font-size:14px;font-weight:300;color:var(--sage-lt);max-width:58ch;line-height:1.6;margin-bottom:30px}
   .flow-track{display:flex;align-items:flex-start;justify-content:space-between;position:relative;margin-bottom:30px;padding:0 6px}
@@ -154,7 +177,7 @@
   @keyframes fpIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
   /* ═══ INVENTÁRIO ═══ */
-  .inv{padding:5vh 7vw}
+  .inv{padding:max(5vh,80px) 7vw 5vh}
   .inv-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:26px;flex-wrap:wrap;gap:16px}
   .inv-head .ihttl{font-family:'DM Serif Display',serif;font-size:clamp(22px,2.8vw,36px);max-width:22ch;line-height:1.12}
   .inv-head .ihsub{font-size:13px;font-weight:300;color:var(--sage-lt);margin-top:8px}
@@ -221,7 +244,7 @@
   .close .sig span{color:var(--sage-lt);font-size:12px;font-family:'Courier Prime',monospace;letter-spacing:1px;display:block;margin-top:6px}
 
   /* ═══ EXEMPLO CONCRETO — PEDIDO & RELATÓRIO ═══ */
-  .demo{padding:5vh 7vw}
+  .demo{padding:max(5vh,80px) 7vw 5vh}
   .demo h2{font-size:clamp(22px,2.9vw,38px);margin-bottom:8px;max-width:26ch}
   .demo .lead{font-size:14px;font-weight:300;color:var(--sage-lt);max-width:72ch;line-height:1.6;margin-bottom:26px}
   .demo .lead em{color:var(--mint);font-weight:400}
@@ -259,9 +282,6 @@
     .exec-row{grid-template-columns:1fr}
     .exec-row.hdr{display:none}
     .fp-cols{grid-template-columns:1fr;gap:22px}
-    /* selbar and pageno both anchor to the same top-right corner; on a
-       phone-width screen there's no room for both without overlapping text */
-    .pageno.eclipsed{display:none}
     .selbar{gap:10px}
     .selcount{font-size:11px;padding:6px 12px}
 
@@ -283,12 +303,27 @@
     .nav{background:rgba(18,39,48,.86);backdrop-filter:blur(6px);
       -webkit-backdrop-filter:blur(6px);padding:7px 12px;border-radius:20px}
 
+    /* the pills above mask what's directly behind them, but a border or
+       connector line from scrolled content can still peek through the gap
+       between, e.g., brandmark and pageno. A full-width fade behind the
+       whole header/footer strip closes that gap regardless of which
+       slide's background color is showing. */
+    .mob-scrim{display:block;position:fixed;left:0;right:0;height:calc(84px + env(safe-area-inset-top));
+      z-index:55;pointer-events:none}
+    .mob-scrim.top{top:0;background:linear-gradient(to bottom,rgba(10,22,28,.8) 0%,rgba(10,22,28,.5) 65%,transparent 100%)}
+    .mob-scrim.bottom{bottom:0;top:auto;height:calc(84px + env(safe-area-inset-bottom));
+      background:linear-gradient(to top,rgba(10,22,28,.8) 0%,rgba(10,22,28,.5) 65%,transparent 100%)}
+
     /* full-height slides get too tall once grids stack to one column,
        so let each slide scroll internally instead of clipping content */
     .slide{height:100vh;height:100dvh;justify-content:flex-start;overflow-y:auto;
       -webkit-overflow-scrolling:touch;padding:calc(74px + env(safe-area-inset-top)) 6vw
         calc(11vh + env(safe-area-inset-bottom)) 6vw}
-    .slide.cover{justify-content:center;padding-top:calc(74px + env(safe-area-inset-top))}
+    /* flex-start (inherited from .slide above) rather than centered: a
+       tall headline centered in a short viewport can overflow upward into
+       the fixed brandmark, and — worse — that overflow can be permanently
+       stuck out of scroll reach since scrollTop can't go negative */
+    .cover{padding-top:calc(74px + env(safe-area-inset-top))}
     /* .slide is a column flex container, so its children default to
        flex-shrink:1 — once content is taller than the 100dvh box, flexbox
        squeezes cards like .flow-panel down to their min-height instead of
@@ -338,6 +373,8 @@
   <span class="selcount"><b id="selnum">0</b> frentes marcadas</span>
   <button class="selclear" id="selclear">limpar</button>
 </div>
+<div class="mob-scrim top"></div>
+<div class="mob-scrim bottom"></div>
 
 <div class="deck" id="deck">
 
@@ -884,6 +921,9 @@
     const s=stages[fi];
     fnodes.forEach((n,k)=>{n.classList.toggle('active',k===fi);n.classList.toggle('done',k<fi);});
     prog.style.width=fnodes.length>1?(fi/(fnodes.length-1)*100)+'%':'0';
+    // on mobile the track scrolls horizontally; keep the active node in view
+    // when advancing via the panel's own prev/next (not just by swiping)
+    fnodes[fi].scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
     const sl=s.tag?seal[s.tag]:null;
     panel.className='flow-panel rv'+(s.tag==='leak'?' leak':'');
     panel.innerHTML=`
