@@ -258,13 +258,23 @@
     .pm-grid,.inv-grid,.demo-grid{grid-template-columns:1fr}
     .exec-row{grid-template-columns:1fr}
     .exec-row.hdr{display:none}
-    .brandmark{left:6vw}
     .fp-cols{grid-template-columns:1fr;gap:22px}
     /* selbar and pageno both anchor to the same top-right corner; on a
        phone-width screen there's no room for both without overlapping text */
     .pageno.eclipsed{display:none}
     .selbar{gap:10px}
     .selcount{font-size:11px;padding:6px 12px}
+
+    /* slides now scroll internally (see .slide rule below), so slide content
+       can pass underneath these fixed corner labels as the user scrolls —
+       give them an opaque backdrop so scrolled text doesn't collide with them */
+    .brandmark{left:4vw;background:rgba(18,39,48,.86);backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);padding:7px 12px;border-radius:10px}
+    .pageno{background:rgba(18,39,48,.86);backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);padding:7px 11px;border-radius:10px}
+    .selbar{background:rgba(18,39,48,.86);backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);padding:7px 10px;border-radius:16px}
+    .selcount{background:none;border:none;padding:0}
 
     /* full-height slides get too tall once grids stack to one column,
        so let each slide scroll internally instead of clipping content */
