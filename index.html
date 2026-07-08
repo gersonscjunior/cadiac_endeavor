@@ -14,12 +14,12 @@
     --ease:cubic-bezier(.22,.61,.36,1);
   }
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{height:100%;overflow:hidden;background:var(--deep)}
+  html,body{height:100%;height:100dvh;overflow:hidden;background:var(--deep);overscroll-behavior:none}
   body{font-family:'Epilogue',sans-serif;color:var(--mint);-webkit-font-smoothing:antialiased;
     user-select:none;-webkit-tap-highlight-color:transparent}
 
   .deck{position:fixed;inset:0;display:flex;transition:transform .7s var(--ease)}
-  .slide{min-width:100vw;height:100vh;position:relative;display:flex;flex-direction:column;
+  .slide{min-width:100vw;height:100vh;height:100dvh;position:relative;display:flex;flex-direction:column;
     justify-content:center;padding:6vh 7vw;overflow:hidden}
   .slide.dark{background:var(--deep)}
   .slide.deeper{background:var(--deeper)}
@@ -33,22 +33,22 @@
   em{font-style:italic;color:var(--mint)}
 
   /* nav */
-  .nav{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);display:flex;gap:9px;z-index:60;align-items:center}
+  .nav{position:fixed;bottom:calc(26px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:flex;gap:9px;z-index:60;align-items:center}
   .dot{width:7px;height:7px;border-radius:50%;background:rgba(226,247,212,.22);cursor:pointer;transition:all .35s var(--ease)}
   .dot.on{background:var(--mint);width:22px;border-radius:4px}
-  .arrows{position:fixed;bottom:22px;right:28px;display:flex;gap:8px;z-index:60}
+  .arrows{position:fixed;bottom:calc(22px + env(safe-area-inset-bottom));right:calc(28px + env(safe-area-inset-right));display:flex;gap:8px;z-index:60}
   .arw{width:38px;height:38px;border-radius:50%;border:1px solid rgba(226,247,212,.18);
     background:rgba(226,247,212,.04);color:var(--mint);cursor:pointer;display:flex;align-items:center;
     justify-content:center;transition:all .3s var(--ease)}
   .arw:hover{background:rgba(226,247,212,.12);border-color:rgba(226,247,212,.4)}
   .arw:active{transform:scale(.92)}
-  .brandmark{position:fixed;top:26px;left:7vw;z-index:60;font-family:'DM Serif Display',serif;
+  .brandmark{position:fixed;top:calc(26px + env(safe-area-inset-top));left:calc(7vw + env(safe-area-inset-left));z-index:60;font-family:'DM Serif Display',serif;
     font-size:19px;letter-spacing:-.01em;color:var(--mint);opacity:.9}
   .brandmark span{color:var(--sage-lt)}
-  .pageno{position:fixed;top:30px;right:28px;z-index:60;font-family:'Courier Prime',monospace;
+  .pageno{position:fixed;top:calc(30px + env(safe-area-inset-top));right:calc(28px + env(safe-area-inset-right));z-index:60;font-family:'Courier Prime',monospace;
     font-size:11px;letter-spacing:2px;color:var(--sage-lt)}
   /* selection counter (global) */
-  .selbar{position:fixed;top:24px;right:28px;z-index:61;display:none;align-items:center;gap:14px}
+  .selbar{position:fixed;top:calc(24px + env(safe-area-inset-top));right:calc(28px + env(safe-area-inset-right));z-index:61;display:none;align-items:center;gap:14px}
   .selbar.show{display:flex}
   .selcount{font-family:'Courier Prime',monospace;font-size:12px;letter-spacing:1px;color:var(--mint);
     background:rgba(226,247,212,.08);border:1px solid rgba(226,247,212,.22);border-radius:20px;padding:7px 15px}
@@ -93,7 +93,7 @@
   .pm-flag{font-family:'Courier Prime',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;
     padding:3px 8px;border-radius:10px}
   .pm-flag.vis{color:var(--amber);border:1px solid rgba(217,178,106,.35)}
-  .pm-flag.inv{color:var(--carmim);border:1px solid rgba(224,107,100,.4)}
+  .pm-flag.hide{color:var(--carmim);border:1px solid rgba(224,107,100,.4)}
   .pm-col ul{list-style:none;display:flex;flex-direction:column;gap:8px}
   .pm-col li{font-size:12.5px;font-weight:300;color:var(--sage-lt);line-height:1.4;padding-left:14px;position:relative}
   .pm-col li::before{content:'';position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:50%;background:var(--sage)}
@@ -259,28 +259,45 @@
     .exec-row{grid-template-columns:1fr}
     .exec-row.hdr{display:none}
     .brandmark{left:6vw}
+    .fp-cols{grid-template-columns:1fr;gap:22px}
+    /* selbar and pageno both anchor to the same top-right corner; on a
+       phone-width screen there's no room for both without overlapping text */
+    .pageno.eclipsed{display:none}
+    .selbar{gap:10px}
+    .selcount{font-size:11px;padding:6px 12px}
+
+    /* full-height slides get too tall once grids stack to one column,
+       so let each slide scroll internally instead of clipping content */
+    .slide{height:100vh;height:100dvh;justify-content:flex-start;overflow-y:auto;
+      -webkit-overflow-scrolling:touch;padding:calc(74px + env(safe-area-inset-top)) 6vw
+        calc(11vh + env(safe-area-inset-bottom)) 6vw}
+    .slide.cover{justify-content:center;padding-top:calc(74px + env(safe-area-inset-top))}
+
+    /* min-height is required: overflow-x:auto collapses a flex row's
+       auto cross-size, which would otherwise clip the node labels */
+    .flow-track{overflow-x:auto;overflow-y:hidden;padding-bottom:6px;min-height:72px;
+      -webkit-overflow-scrolling:touch;justify-content:flex-start;gap:22px}
+    .flow-track::-webkit-scrollbar{display:none}
+    .fnode{flex:0 0 auto;min-width:58px}
+    /* the connector line can't track a scrollWidth wider than the box via CSS % alone; hide it and keep the numbered dots as the progress cue */
+    .flow-track::before,.flow-track .prog{display:none}
+
+    .demo-lr{flex-direction:column;align-items:stretch}
+    .demo-lr .lrarrow{align-self:center;transform:rotate(90deg)}
+
+    /* .sig is normally absolute+bottom-anchored, which works when content
+       is vertically centered in a fixed-height slide; once slides scroll
+       top-aligned on mobile that leaves a large dead gap and an
+       unconstrained line that overflows past the viewport edge — put it
+       back in normal flow instead */
+    .close .sig{position:static;margin-top:34px}
+  }
+  @media(max-width:480px){
+    .pm-col,.cat,.flow-panel,.demo-doc{padding:16px 16px 18px}
+    .exec-toggle button{padding:8px 12px;font-size:11px}
   }
   @media(prefers-reduced-motion:reduce){.rv{animation:none!important;opacity:1;transform:none}.deck{transition:none}}
-
-    body {
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
-    }
-    .deck {
-        width: 100vw;
-        overflow-x: hidden;
-    }
-    @media (max-width: 600px) {
-        .pm-grid, .inv-grid {
-            grid-template-columns: 1fr !important;
-        }
-        .slide {
-            padding: 4vh 5vw !important;
-        }
-        h1 { font-size: 32px !important; }
-        .nav { bottom: 15px !important; }
-    }
-    </style>
+</style>
 </head>
 <body>
 
@@ -314,7 +331,7 @@
     <p class="lead rv">Umas doem alto e todo mundo vê. Outras sangram em silêncio, sem aparecer em lugar nenhum. O inventário cobre as duas.</p>
     <div class="pm-grid rv">
       <div class="pm-col acute">
-        <div class="pm-head"><span class="pm-name">Entrada</span><span class="pm-flag inv">Invisível</span></div>
+        <div class="pm-head"><span class="pm-name">Entrada</span><span class="pm-flag hide">Invisível</span></div>
         <ul>
           <li>"Oi" sem resposta rápida</li>
           <li>Dúvida frequente não filtrada</li>
@@ -360,7 +377,7 @@
         </ul>
       </div>
       <div class="pm-col acute">
-        <div class="pm-head"><span class="pm-name">Conhecimento</span><span class="pm-flag inv">Risco</span></div>
+        <div class="pm-head"><span class="pm-name">Conhecimento</span><span class="pm-flag hide">Risco</span></div>
         <ul>
           <li>Operação apenas na mente da equipe de apoio ou médicos associados</li>
           <li>Rotatividade apaga o conhecimento</li>
@@ -740,6 +757,9 @@
     pageno.textContent=String(cur+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
     // show selection counter only on inventory slides
     selbar.classList.toggle('show',slides[cur].hasAttribute('data-inv'));
+    // on narrow screens selbar and pageno share the same corner and collide;
+    // pageno is redundant there since the dot nav already shows position
+    pageno.classList.toggle('eclipsed',slides[cur].hasAttribute('data-inv'));
   }
   document.getElementById('next').onclick=()=>go(cur+1);
   document.getElementById('prev').onclick=()=>go(cur-1);
@@ -748,9 +768,19 @@
     if(e.key==='ArrowLeft'||e.key==='PageUp')go(cur-1);
     if(e.key==='Home')go(0);if(e.key==='End')go(slides.length-1);
   });
-  let tx=0;
-  deck.addEventListener('touchstart',e=>tx=e.touches[0].clientX,{passive:true});
-  deck.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>60)go(cur+(dx<0?1:-1));},{passive:true});
+  let tx=0,ty=0,tinTrack=false;
+  deck.addEventListener('touchstart',e=>{
+    tx=e.touches[0].clientX;ty=e.touches[0].clientY;
+    tinTrack=!!e.target.closest('.flow-track');
+  },{passive:true});
+  deck.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-tx;
+    const dy=e.changedTouches[0].clientY-ty;
+    // ignore mostly-vertical drags (page scroll) and drags started inside the
+    // horizontally-scrollable flow-track, so it can be swiped on its own
+    if(tinTrack)return;
+    if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy))go(cur+(dx<0?1:-1));
+  },{passive:true});
 
   /* selection */
   const items=[...document.querySelectorAll('.item')];
