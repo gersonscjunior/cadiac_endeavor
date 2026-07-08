@@ -276,12 +276,26 @@
       -webkit-backdrop-filter:blur(6px);padding:7px 10px;border-radius:16px}
     .selcount{background:none;border:none;padding:0}
 
+    /* same issue at the bottom: the deck's prev/next arrows and page dots
+       are fixed and nearly transparent, so scrolled text visibly cuts
+       across them once slide content is taller than the screen */
+    .arw{background:rgba(18,39,48,.9);border-color:rgba(226,247,212,.32)}
+    .nav{background:rgba(18,39,48,.86);backdrop-filter:blur(6px);
+      -webkit-backdrop-filter:blur(6px);padding:7px 12px;border-radius:20px}
+
     /* full-height slides get too tall once grids stack to one column,
        so let each slide scroll internally instead of clipping content */
     .slide{height:100vh;height:100dvh;justify-content:flex-start;overflow-y:auto;
       -webkit-overflow-scrolling:touch;padding:calc(74px + env(safe-area-inset-top)) 6vw
         calc(11vh + env(safe-area-inset-bottom)) 6vw}
     .slide.cover{justify-content:center;padding-top:calc(74px + env(safe-area-inset-top))}
+    /* .slide is a column flex container, so its children default to
+       flex-shrink:1 — once content is taller than the 100dvh box, flexbox
+       squeezes cards like .flow-panel down to their min-height instead of
+       letting the slide scroll, clipping text under overflow:hidden. Keep
+       every direct child at its natural content height and let the slide
+       (not its children) absorb the overflow via scrolling. */
+    .slide > *{flex-shrink:0}
 
     /* min-height is required: overflow-x:auto collapses a flex row's
        auto cross-size, which would otherwise clip the node labels */
@@ -291,6 +305,12 @@
     .fnode{flex:0 0 auto;min-width:58px}
     /* the connector line can't track a scrollWidth wider than the box via CSS % alone; hide it and keep the numbered dots as the progress cue */
     .flow-track::before,.flow-track .prog{display:none}
+
+    /* fp-nav (prev/next stage buttons) is absolutely positioned in the
+       panel's bottom-right corner. On desktop the two side-by-side lists
+       leave empty space there; stacked to one column on mobile, the last
+       list item now reaches that corner and collides with the buttons. */
+    .flow-panel{padding-bottom:70px}
 
     .demo-lr{flex-direction:column;align-items:stretch}
     .demo-lr .lrarrow{align-self:center;transform:rotate(90deg)}
@@ -303,7 +323,8 @@
     .close .sig{position:static;margin-top:34px}
   }
   @media(max-width:480px){
-    .pm-col,.cat,.flow-panel,.demo-doc{padding:16px 16px 18px}
+    .pm-col,.cat,.demo-doc{padding:16px 16px 18px}
+    .flow-panel{padding:16px 16px 70px}
     .exec-toggle button{padding:8px 12px;font-size:11px}
   }
   @media(prefers-reduced-motion:reduce){.rv{animation:none!important;opacity:1;transform:none}.deck{transition:none}}
