@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>SyncLab · Especificação — Pedido de Cirurgia</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Epilogue:wght@200;300;400;500;600;700&family=Courier+Prime:wght@400;700&display=swap');
+
+  :root{
+    --mint:#e2f7d4;--sage:#527a70;--sage-lt:#7fa79b;--teal:#2f585d;
+    --navy:#20404f;--deep:#182f3a;--deeper:#122730;
+    --carmim:#e06b64;--amber:#d9b26a;
+    --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{background:var(--deep)}
+  body{font-family:'Epilogue',sans-serif;color:var(--mint);background:var(--deep);
+    -webkit-font-smoothing:antialiased;line-height:1.6;
+    padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+
+  a{color:inherit}
+  code{font-family:'Courier Prime',monospace}
+
+  /* ── header ── */
+  .top{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(18px + env(safe-area-inset-top)) 7vw 16px;background:rgba(24,47,58,.88);
+    backdrop-filter:blur(10px);border-bottom:1px solid rgba(82,122,112,.24)}
+  .brandmark{font-family:'DM Serif Display',serif;font-size:18px;letter-spacing:-.01em;color:var(--mint)}
+  .brandmark span{color:var(--sage-lt)}
+  .top .doctag{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--sage-lt)}
+
+  .hero{padding:8vh 7vw 5vh;max-width:960px}
+  .hero .eyebrow{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:var(--sage-lt);margin-bottom:20px;display:flex;align-items:center;gap:12px}
+  .hero .eyebrow::before{content:'';width:28px;height:1px;background:var(--sage)}
+  .hero h1{font-family:'DM Serif Display',serif;font-weight:400;line-height:1.12;font-size:clamp(28px,4.2vw,48px);
+    max-width:20ch}
+  .hero .meta{margin-top:22px;font-size:14px;font-weight:300;color:var(--sage-lt);max-width:70ch;line-height:1.7}
+  .hero .meta strong{color:var(--mint);font-weight:500}
+  .conv{margin-top:18px;padding:14px 18px;border:1px solid rgba(217,178,106,.3);border-radius:12px;
+    background:rgba(217,178,106,.06);font-size:12.5px;font-weight:300;color:var(--sage-lt);max-width:70ch;line-height:1.6}
+  .conv code{color:var(--amber)}
+
+  /* ── layout: sidebar + article ── */
+  .wrap{display:grid;grid-template-columns:230px minmax(0,1fr);gap:48px;max-width:1180px;margin:0 auto;
+    padding:0 7vw}
+  aside.toc{position:sticky;top:78px;align-self:start;max-height:calc(100vh - 100px);overflow-y:auto;
+    padding-bottom:30px}
+  aside.toc .toc-h{font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--sage-lt);margin-bottom:14px}
+  aside.toc ol{list-style:none;display:flex;flex-direction:column;gap:2px}
+  aside.toc li a{display:block;font-size:12.5px;font-weight:300;color:var(--sage-lt);text-decoration:none;
+    padding:7px 10px;border-radius:8px;border-left:2px solid transparent;transition:all .2s var(--ease)}
+  aside.toc li a:hover{color:var(--mint);background:rgba(226,247,212,.05);border-left-color:var(--sage)}
+  aside.toc li b{color:var(--sage-lt);font-family:'Courier Prime',monospace;font-weight:400;margin-right:6px}
+
+  details.toc-m{display:none}
+
+  article{min-width:0;padding-bottom:10vh}
+
+  section.sec{padding:5vh 0;border-top:1px solid rgba(82,122,112,.18)}
+  section.sec:first-child{border-top:none;padding-top:0}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+  .sec-idx{font-family:'Courier Prime',monospace;font-size:13px;letter-spacing:1px;color:var(--sage-lt);
+    border:1px solid rgba(82,122,112,.4);border-radius:20px;padding:3px 11px;flex-shrink:0}
+  .sec h2{font-family:'DM Serif Display',serif;font-weight:400;font-size:clamp(21px,2.6vw,30px);color:var(--mint)}
+
+  .sub-h{font-family:'Courier Prime',monospace;font-size:10.5px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--amber);margin:26px 0 12px}
+  .sub-h:first-of-type{margin-top:6px}
+
+  p{font-size:14.5px;font-weight:300;color:var(--sage-lt);max-width:74ch;margin-bottom:12px}
+  p strong,li strong{color:var(--mint);font-weight:500}
+  p code,li code{background:rgba(226,247,212,.08);border:1px solid rgba(226,247,212,.14);border-radius:5px;
+    padding:1px 6px;font-size:12.5px;color:var(--mint)}
+
+  ul.list,ol.list{list-style:none;display:flex;flex-direction:column;gap:10px;max-width:74ch;margin-bottom:16px}
+  ul.list > li{position:relative;padding-left:20px;font-size:14px;font-weight:300;color:var(--sage-lt);line-height:1.55}
+  ul.list > li::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--sage)}
+  ul.list ul{list-style:none;display:flex;flex-direction:column;gap:8px;margin-top:8px;padding-left:2px}
+  ul.list ul li{position:relative;padding-left:18px;font-size:13px;font-weight:300;color:var(--sage-lt);line-height:1.5}
+  ul.list ul li::before{content:'';position:absolute;left:0;top:7px;background:var(--sage-lt);opacity:.6;width:4px;height:4px;border-radius:50%}
+
+  ol.list{counter-reset:item}
+  ol.list > li{position:relative;padding-left:30px;font-size:14.5px;font-weight:300;color:var(--sage-lt);line-height:1.6}
+  ol.list > li strong{display:inline}
+  ol.list > li::before{counter-increment:item;content:counter(item);position:absolute;left:0;top:0;
+    font-family:'Courier Prime',monospace;font-size:11px;color:var(--mint);border:1px solid rgba(226,247,212,.3);
+    border-radius:50%;width:19px;height:19px;display:flex;align-items:center;justify-content:center}
+
+  /* requirement rows (RF-x) */
+  .rf{display:flex;gap:14px;align-items:flex-start;padding:12px 14px;border-radius:10px;
+    background:rgba(24,47,58,.4);border:1px solid rgba(82,122,112,.2);margin-bottom:8px;max-width:78ch}
+  .rf b{font-family:'Courier Prime',monospace;font-size:11px;color:var(--mint);flex-shrink:0;
+    border:1px solid rgba(226,247,212,.28);border-radius:8px;padding:3px 8px;margin-top:1px}
+  .rf span{font-size:13.5px;font-weight:300;color:var(--sage-lt);line-height:1.5}
+
+  /* leve x robusto pill pair */
+  .lr{display:flex;align-items:stretch;gap:10px;max-width:78ch;margin:14px 0 20px}
+  .lr .pill{flex:1;min-width:0;border-radius:12px;padding:14px 16px;font-size:13px;font-weight:300;line-height:1.5}
+  .lr .pill .k{display:block;font-family:'Courier Prime',monospace;font-size:9.5px;letter-spacing:1.5px;
+    text-transform:uppercase;margin-bottom:6px}
+  .lr .pill.leve{background:rgba(24,47,58,.6);border:1px solid rgba(82,122,112,.32);color:var(--sage-lt)}
+  .lr .pill.leve .k{color:var(--sage)}
+  .lr .pill.rob{background:rgba(226,247,212,.06);border:1px solid rgba(226,247,212,.18);color:var(--mint)}
+  .lr .pill.rob .k{color:var(--mint)}
+  .lr .arrow{align-self:center;color:var(--sage);font-size:16px;flex-shrink:0}
+
+  blockquote{max-width:74ch;margin:16px 0;padding:14px 18px;border-left:2px solid var(--sage);
+    font-size:13.5px;font-weight:300;font-style:italic;color:var(--sage-lt);background:rgba(82,122,112,.08);
+    border-radius:0 10px 10px 0}
+  blockquote strong{color:var(--mint);font-style:normal}
+
+  pre{max-width:82ch;overflow-x:auto;background:var(--deeper);border:1px solid rgba(82,122,112,.28);
+    border-radius:14px;padding:20px 22px;margin:16px 0 20px;-webkit-overflow-scrolling:touch}
+  pre code{font-size:12.5px;line-height:1.6;color:#bcd9c6;white-space:pre}
+
+  .tag-confirm{display:inline-block;font-family:'Courier Prime',monospace;font-size:9px;letter-spacing:1px;
+    text-transform:uppercase;color:var(--amber);border:1px solid rgba(217,178,106,.4);border-radius:8px;
+    padding:2px 7px;margin-right:8px;vertical-align:middle}
+
+  .card{border:1px solid rgba(82,122,112,.24);border-radius:14px;padding:18px 20px;background:rgba(24,47,58,.35);
+    max-width:78ch;margin-bottom:18px}
+  .card .card-h{font-family:'DM Serif Display',serif;font-size:16px;color:var(--mint);margin-bottom:4px}
+  .card .card-s{font-size:12.5px;font-style:italic;color:var(--sage-lt);margin-bottom:0}
+
+  footer{padding:6vh 7vw calc(4vh + env(safe-area-inset-bottom));max-width:960px}
+  footer p{font-size:12px;color:var(--sage);font-family:'Courier Prime',monospace;letter-spacing:.5px}
+
+  @media(max-width:900px){
+    .wrap{grid-template-columns:1fr;padding:0 6vw}
+    aside.toc{display:none}
+    details.toc-m{display:block;margin:0 0 4vh;border:1px solid rgba(82,122,112,.3);border-radius:14px;
+      background:rgba(24,47,58,.5);padding:14px 16px}
+    details.toc-m summary{cursor:pointer;font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:2px;
+      text-transform:uppercase;color:var(--mint);list-style:none}
+    details.toc-m summary::-webkit-details-marker{display:none}
+    details.toc-m ol{list-style:none;display:flex;flex-direction:column;gap:2px;margin-top:14px}
+    details.toc-m li a{display:block;font-size:13px;font-weight:300;color:var(--sage-lt);text-decoration:none;
+      padding:8px 4px}
+    details.toc-m li b{font-family:'Courier Prime',monospace;color:var(--sage-lt);margin-right:6px}
+    .hero{padding:6vh 6vw 4vh}
+    .top{padding:calc(16px + env(safe-area-inset-top)) 6vw 14px}
+    .lr{flex-direction:column}
+    .lr .arrow{transform:rotate(90deg)}
+    .rf{flex-direction:column;gap:6px}
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="brandmark">Sync<span>Lab</span></div>
+  <div class="doctag">Documento interno</div>
+</div>
+
+<div class="hero">
+  <div class="eyebrow">Especificação técnica</div>
+  <h1>Pedido de Cirurgia + Biblioteca de Descrições</h1>
+  <p class="meta">Origem: orientações da <strong>Dra. Jéssica</strong> (mensagem de texto + áudio). Documento interno de trabalho.</p>
+  <div class="conv">Convenção: itens marcados <code>[confirmar]</code> são inferências do áudio/arquivos, não fatos verificados da clínica de Brasília.</div>
+</div>
+
+<details class="toc-m">
+  <summary>Sumário</summary>
+  <ol>
+    <li><a href="#sec-0"><b>0</b>Requisitos da Dra. Jéssica</a></li>
+    <li><a href="#sec-1"><b>1</b>Escopo</a></li>
+    <li><a href="#sec-2"><b>2</b>Fase 0 — Mapeamento</a></li>
+    <li><a href="#sec-3"><b>3</b>Módulo A — Gerador de Pedido</a></li>
+    <li><a href="#sec-4"><b>4</b>Módulo B — Descrições</a></li>
+    <li><a href="#sec-5"><b>5</b>Módulo C — Guias/Convênio</a></li>
+    <li><a href="#sec-6"><b>6</b>Módulo D — Captação</a></li>
+    <li><a href="#sec-7"><b>7</b>Modelo de dados</a></li>
+    <li><a href="#sec-8"><b>8</b>Requisitos não-funcionais</a></li>
+    <li><a href="#sec-9"><b>9</b>Suposições e riscos</a></li>
+    <li><a href="#sec-10"><b>10</b>Entregáveis e ordem</a></li>
+  </ol>
+</details>
+
+<div class="wrap">
+  <aside class="toc">
+    <div class="toc-h">Sumário</div>
+    <ol>
+      <li><a href="#sec-0"><b>0</b>Requisitos da fonte</a></li>
+      <li><a href="#sec-1"><b>1</b>Escopo</a></li>
+      <li><a href="#sec-2"><b>2</b>Fase 0 — Mapeamento</a></li>
+      <li><a href="#sec-3"><b>3</b>Módulo A — Pedido</a></li>
+      <li><a href="#sec-4"><b>4</b>Módulo B — Descrições</a></li>
+      <li><a href="#sec-5"><b>5</b>Módulo C — Guias</a></li>
+      <li><a href="#sec-6"><b>6</b>Módulo D — Captação</a></li>
+      <li><a href="#sec-7"><b>7</b>Modelo de dados</a></li>
+      <li><a href="#sec-8"><b>8</b>Não-funcionais</a></li>
+      <li><a href="#sec-9"><b>9</b>Riscos</a></li>
+      <li><a href="#sec-10"><b>10</b>Entregáveis</a></li>
+    </ol>
+  </aside>
+
+  <article>
+
+    <section class="sec" id="sec-0">
+      <div class="sec-head"><span class="sec-idx">0</span><h2>Requisitos da Dra. Jéssica (fonte)</h2></div>
+      <p>Do que ela pediu, na ordem de prioridade que ela mesma deu:</p>
+      <ol class="list">
+        <li><strong>Foco principal agora:</strong> entender a fundo o <em>processo do pedido de cirurgia</em> — a parte burocrática — antes de propor solução. "Primeiro entender os gargalos, depois pensar nas soluções."</li>
+        <li><strong>Duas linhas de trabalho</strong> abertas por ela:
+          <ul>
+            <li>(a) Aumentar a captação de pacientes, <strong>especialmente para as robóticas</strong>.</li>
+            <li>(b) Resolver problemas de <strong>guias, convênios e autorizações</strong>.</li>
+          </ul>
+        </li>
+        <li><strong>Sobre o pedido em si</strong> (do áudio):
+          <ul>
+            <li>É a tarefa que <strong>mais consome tempo</strong>; alguém precisa ficar sempre em cima.</li>
+            <li>Fluxo real: <strong>clínica → hospital → hospital faz a cotação de material → hospital → convênio.</strong> A clínica nunca vai direto ao convênio.</li>
+            <li>O pedido da clínica <strong>especifica marca</strong> em alguns materiais de propósito: sem marca, o convênio tende a autorizar substituto, e "de uma marca pra outra muda um detalhezinho".</li>
+            <li>Em <strong>Brasília, o próprio cirurgião</strong> monta o pedido (não há equipe de apoio fazendo isso, ao contrário da CCU/Uberlândia).</li>
+            <li>A CCU criou uma <strong>ficha de papel</strong> (checkbox) para "ticar" o que entra — serve para facilitar montar o <strong>"modelo grande"</strong> (o documento formal completo).</li>
+          </ul>
+        </li>
+        <li><strong>Descrições cirúrgicas:</strong> ela quer um <strong>repositório aberto e limpo</strong> ("um e-mail bem aberto, só com isso, sem coisas pessoais") para <strong>acessar e copiar/colar</strong> as descrições do ato cirúrgico.</li>
+      </ol>
+    </section>
+
+    <section class="sec" id="sec-1">
+      <div class="sec-head"><span class="sec-idx">1</span><h2>Escopo</h2></div>
+
+      <div class="sub-h">Dentro do escopo (prioridade 1–2)</div>
+      <ul class="list">
+        <li>Mapear o processo do pedido de cirurgia e seus gargalos.</li>
+        <li><strong>Módulo A</strong> — gerar o pedido de cirurgia (solicitação de internação + OPME) a partir do tipo de procedimento.</li>
+        <li><strong>Módulo B</strong> — biblioteca de descrições cirúrgicas (copiar/colar, sem dado pessoal).</li>
+        <li><strong>Módulo C</strong> — acompanhamento de guias/convênio/autorização (instrumentar o gargalo).</li>
+      </ul>
+
+      <div class="sub-h">Escopo paralelo (prioridade menor, spec própria depois)</div>
+      <ul class="list">
+        <li><strong>Módulo D</strong> — captação de pacientes (robóticas).</li>
+      </ul>
+
+      <div class="sub-h">Fora do escopo (agora)</div>
+      <ul class="list">
+        <li>Integração direta com sistema de convênio (é o hospital que faz a cotação/envio).</li>
+        <li>Substituir o julgamento clínico do cirurgião sobre material/marca.</li>
+      </ul>
+    </section>
+
+    <section class="sec" id="sec-2">
+      <div class="sec-head"><span class="sec-idx">2</span><h2>Fase 0 — Mapeamento do processo</h2></div>
+      <p><em>Pré-requisito, antes de construir.</em></p>
+      <div class="sub-h">Objetivo</div>
+      <p>Transformar o processo do pedido em um fluxo escrito e uma lista de gargalos <em>confirmada com a clínica</em> — é o que a Jéssica pediu como primeiro passo.</p>
+
+      <div class="sub-h">Atividades</div>
+      <ul class="list">
+        <li>Desenhar o fluxo ponta a ponta: quem escreve o pedido → como sai para o hospital → cotação → convênio → autorização → agendamento.</li>
+        <li>Cronometrar/estimar onde o tempo é gasto e onde trava (<span class="tag-confirm">confirmar</span>hipótese de que a montagem do pedido e a autorização são os dois pontos mais caros).</li>
+        <li>Levantar as causas de retrabalho: material trocado/incompleto, marca substituída, guia devolvida, prazo estourado.</li>
+      </ul>
+
+      <div class="sub-h">Entregável</div>
+      <p>Mapa do processo (1 página) + tabela de gargalos (gargalo · frequência · impacto · dono atual). Validado com Jéssica/Cláudio antes de codar qualquer coisa.</p>
+    </section>
+
+    <section class="sec" id="sec-3">
+      <div class="sec-head"><span class="sec-idx">3</span><h2>Módulo A — Gerador de Pedido de Cirurgia</h2></div>
+
+      <div class="sub-h">Problema</div>
+      <p>O "modelo grande" é remontado à mão a cada caso; risco de material errado/incompleto trava a sala.</p>
+
+      <div class="sub-h">Insight de projeto</div>
+      <p>A lista de OPME e os códigos TUSS são função quase inteira do <strong>tipo de procedimento</strong>, não do paciente individual. O que muda por caso é um conjunto pequeno de parâmetros (paciente, hospital, convênio, tamanhos/números, marca confirmada, prótese). Logo: separar o <strong>esqueleto por procedimento</strong> (fixo, versionado) dos <strong>campos variáveis</strong> (preenchidos por caso).</p>
+
+      <div class="sub-h">Fonte do catálogo</div>
+      <p>A ficha da CCU já é o esquema de entrada. Ela define:</p>
+      <ul class="list">
+        <li><strong>Abordagem:</strong> Convencional · Mini Incisão · Robótica · Reoperação.</li>
+        <li><strong>~40 tipos de cirurgia</strong> (Revasc, RM sem CEC, Bentall, TVAO, TVMI, Plastia Mitral/Tricúspide/Ao, Dissecção de Aorta, Tetralogia de Fallot, CIA/CIV, Coarctação, Aneurismas etc.).</li>
+        <li><strong>Prótese:</strong> Biológica/Mecânica + Marca.</li>
+        <li><strong>Toggles SIM/NÃO de material:</strong> ECO Intra, CEC, Vídeo, CellSaver, Material MICS, Cânula Femoral, PTFE, Chord-X, Cosgrove, Anel Anuloplastia, DACRON (+Nº), KONECT, Afastador de Partes Moles, Pericárdio Bovino, Monocuspide, Fita Cardíaca, Dreno (Blake/Thopaz), Prevena, Cola Cirúrgica, Endobag, Cirurgião Torácico.</li>
+        <li><strong>Campo livre:</strong> Informações Adicionais.</li>
+      </ul>
+
+      <div class="sub-h">Requisitos funcionais</div>
+      <div class="rf"><b>RF-A1</b><span>Seleção do procedimento → carregar template de OPME, códigos TUSS (principal + secundários) e defaults de marca/quantidade daquele procedimento.</span></div>
+      <div class="rf"><b>RF-A2</b><span><strong>Preservar marca e preferência</strong> por item (default do catálogo, editável por caso). Nunca apagar a marca "sozinho".</span></div>
+      <div class="rf"><b>RF-A3</b><span>Editar quantidades, tamanhos/números (ex.: prótese nº 31, DACRON nº 28, anel Physio II nº 32) e trocar/adicionar item.</span></div>
+      <div class="rf"><b>RF-A4</b><span>Campos do cabeçalho: paciente, sexo, contato, convênio, hospital, tipo de atendimento (eletiva), histórico clínico, CID/diagnóstico, cirurgião/CRM.</span></div>
+      <div class="rf"><b>RF-A5</b><span>Saída = documento formatado "Solicitação de Internação / Justificativa de Procedimento" <strong>pronto para impressão/PDF/envio ao hospital</strong>, idêntico em estrutura ao modelo atual.</span></div>
+      <div class="rf"><b>RF-A6</b><span>Histórico clínico como texto livre (varia por paciente) com opção de modelo por diagnóstico.</span></div>
+
+      <div class="sub-h">Leve × robusto</div>
+      <div class="lr">
+        <div class="pill leve"><span class="k">Leve · já existe / dias</span>Ficha de papel da CCU + um conjunto de <code>.docx</code> modelo, um por procedimento, com OPME/TUSS pré-preenchidos. O cirurgião marca a ficha, alguém ajusta o <code>.docx</code> — não monta do zero.</div>
+        <span class="arrow">→</span>
+        <div class="pill rob"><span class="k">Robusto</span>Formulário digital = a ficha da CCU como UI → merge com o template → gera o documento. Recomendado como <strong>HTML self-contained offline</strong> (alinha com o padrão dos demais artefatos e roda no laptop sem internet) OU planilha/form → doc.</div>
+      </div>
+    </section>
+
+    <section class="sec" id="sec-4">
+      <div class="sec-head"><span class="sec-idx">4</span><h2>Módulo B — Biblioteca de Descrições Cirúrgicas</h2></div>
+
+      <div class="sub-h">Requisito da Jéssica</div>
+      <p>Um lugar aberto, só com as descrições, sem conteúdo pessoal, fácil de acessar e copiar/colar.</p>
+
+      <div class="sub-h">Insight de projeto</div>
+      <p>As descrições compartilham um <strong>esqueleto fixo</strong> (posicionamento/anestesia → antissepsia → acesso → preparo CEC → procedimento-núcleo → deaeração/saída de CEC → reposição/reversão heparina → revisão de hemostasia → drenagem → síntese → UTI). Varia o <strong>núcleo do procedimento</strong> e alguns parâmetros (números de prótese/anel, lado, tipo de acesso).</p>
+
+      <div class="sub-h">Requisitos funcionais</div>
+      <div class="rf"><b>RF-B1</b><span>Modelos por procedimento, com o esqueleto pronto e <strong>campos variáveis destacados</strong> (ex.: <code>&lt;nº prótese&gt;</code>, <code>&lt;lado&gt;</code>, <code>&lt;anel/nº&gt;</code>).</span></div>
+      <div class="rf"><b>RF-B2</b><span><strong>Zero dado pessoal</strong> nos modelos (remover nomes tipo Sandra/Décio/Eloa/José) — vira template, não caso real. (Requisito LGPD, ver seção 8.)</span></div>
+      <div class="rf"><b>RF-B3</b><span>Acesso de qualquer lugar, <strong>copiar/colar em 1 clique</strong>, fonte única (não no WhatsApp de cada um).</span></div>
+      <div class="rf"><b>RF-B4</b><span>Versionado — quando o cirurgião ajusta o padrão de um procedimento, atualiza para todos.</span></div>
+
+      <div class="sub-h">Leve × robusto</div>
+      <div class="lr">
+        <div class="pill leve"><span class="k">Leve</span>Pasta compartilhada (Drive/Notion) ou uma página HTML única com os modelos e botão "copiar". Substitui o "e-mail aberto".</div>
+        <span class="arrow">→</span>
+        <div class="pill rob"><span class="k">Robusto</span>Gerador que monta a descrição a partir do procedimento escolhido + campos preenchidos.</div>
+      </div>
+    </section>
+
+    <section class="sec" id="sec-5">
+      <div class="sec-head"><span class="sec-idx">5</span><h2>Módulo C — Guias / convênio / autorização</h2></div>
+
+      <div class="sub-h">Problema</div>
+      <p>Sem visão de prazo, a autorização trava perto da data; guia devolvida ou material substituído gera retrabalho.</p>
+
+      <div class="sub-h">Requisitos funcionais</div>
+      <div class="rf"><b>RF-C1</b><span>Registro por caso: paciente, procedimento, hospital, convênio, data do envio ao hospital, status (enviado → cotação → convênio → autorizado/pendente/negado), prazo-alvo, pendências.</span></div>
+      <div class="rf"><b>RF-C2</b><span>Sinalizar casos parados/atrasados.</span></div>
+      <div class="rf"><b>RF-C3</b><span>Registrar motivo de devolução/substituição → alimenta a melhoria do catálogo do Módulo A.</span></div>
+
+      <div class="sub-h">Leve × robusto</div>
+      <div class="lr">
+        <div class="pill leve"><span class="k">Leve</span>Planilha com uma linha por autorização + status.</div>
+        <span class="arrow">→</span>
+        <div class="pill rob"><span class="k">Robusto</span>Board (kanban) com etapas e alertas de prazo.</div>
+      </div>
+
+      <blockquote>Observação de fronteira: a cotação e o envio ao convênio são do <strong>hospital</strong>. O que instrumentamos é a <strong>visibilidade do lado da clínica</strong> (o que saiu, quando, em que pé está), não o sistema do convênio.</blockquote>
+    </section>
+
+    <section class="sec" id="sec-6">
+      <div class="sec-head"><span class="sec-idx">6</span><h2>Módulo D — Captação</h2></div>
+      <p><em>Stream paralelo, prioridade menor agora.</em></p>
+      <p>Ela pediu, mas deprioritizou frente ao entendimento do pedido. Direção honesta antes de investir:</p>
+      <ul class="list">
+        <li><strong>Primeiro medir:</strong> registrar origem de cada "oi" (indicação, médico buscado, robótica x convencional). Sem isso, qualquer ação de captação é no escuro.</li>
+        <li>Depois: canal de agendamento divulgado, material para parceiros indicarem, conteúdo sobre robótica.</li>
+        <li><strong>Spec própria</strong> depois do baseline de captação existir.</li>
+      </ul>
+    </section>
+
+    <section class="sec" id="sec-7">
+      <div class="sec-head"><span class="sec-idx">7</span><h2>Modelo de dados — catálogo de procedimentos</h2></div>
+      <p><em>Núcleo do Módulo A.</em> Exemplo de um registro do catálogo (um por tipo de cirurgia):</p>
+
+<pre><code>{
+  "procedimento": "Plastia Mitral",
+  "abordagens": ["Convencional", "Mini Incisão", "Robótica"],
+  "tuss_principal": [{"codigo": "30902045", "descricao": "Plastia Valvar", "qtd": 1}],
+  "tuss_secundarios": [
+    {"codigo": "30905036", "descricao": "Instalação de CEC"},
+    {"codigo": "30905060", "descricao": "Perfusionista"},
+    {"codigo": "40902072", "descricao": "Ecocardiograma intraoperatório"}
+  ],
+  "protese": {"tipo_default": null, "marca_default": null},
+  "opme": [
+    {"item": "Anel para anuloplastia mitral", "marca_pref": "Physio II (Edwards)", "qtd": 1, "obrigatorio": true, "parametro": "numero"},
+    {"item": "Banda de Cosgrove", "marca_pref": "Edwards", "qtd": 1, "obrigatorio": false},
+    {"item": "Cordas de PTFE / Chord-X", "qtd": 1, "obrigatorio": false},
+    {"item": "Conjunto CardioKit adulto", "marca_pref": "Maquet/Sorin", "qtd": 1, "obrigatorio": true}
+  ],
+  "toggles": ["CEC", "ECO Intra", "CellSaver", "Cânula Femoral", "PTFE", "Cosgrove", "Anel Anuloplastia"],
+  "campos_variaveis": ["numero_anel", "numero_protese", "lado_acesso"]
+}</code></pre>
+
+      <p>Campos por item OPME: <code>item</code>, <code>marca_pref</code>, <code>qtd</code>, <code>obrigatorio</code>, <code>parametro</code> (o que muda por caso).</p>
+      <p>Fonte de preenchimento inicial do catálogo: <code>Pedido cirurgia.docx</code> + a ficha CCU + as descrições (uma passada por procedimento com o Dr. Cláudio para validar defaults e marcas).</p>
+    </section>
+
+    <section class="sec" id="sec-8">
+      <div class="sec-head"><span class="sec-idx">8</span><h2>Requisitos não-funcionais</h2></div>
+      <ul class="list">
+        <li><strong>LGPD:</strong> dados de paciente (nome, contato, convênio, histórico) são sensíveis. O pedido gerado carrega esses dados → tratar com cuidado, não expor em repositório aberto. Já a biblioteca de descrições (Módulo B) deve ser <strong>anonimizada</strong> (é o que a Jéssica pediu: "sem coisas pessoais").</li>
+        <li><strong>Fidelidade de marca:</strong> o sistema nunca substitui/remove marca automaticamente; ela é decisão do cirurgião.</li>
+        <li><strong>Saída imprimível:</strong> pedido em formato idêntico ao atual (papel timbrado "Clínica Cardiocirúrgica de Brasília", CRM, data).</li>
+        <li><span class="tag-confirm">confirmar necessidade</span><strong>Offline / portátil:</strong> se rodar no laptop em consulta, gerador self-contained.</li>
+        <li><strong>Manutenção:</strong> o catálogo tem dono e é versionado; muda quando o padrão clínico muda.</li>
+        <li><strong>Baixo atrito:</strong> o cirurgião monta o pedido em minutos, não recomeça do zero.</li>
+      </ul>
+    </section>
+
+    <section class="sec" id="sec-9">
+      <div class="sec-head"><span class="sec-idx">9</span><h2>Suposições a confirmar / riscos</h2></div>
+      <ul class="list">
+        <li><span class="tag-confirm">confirmar</span>O fluxo clínica→hospital→cotação→convênio é o mesmo para todos os hospitais/convênios de Brasília.</li>
+        <li><span class="tag-confirm">confirmar</span>Em Brasília o cirurgião faz 100% dos pedidos hoje (sem apoio) — impacta se o alvo do gerador é o médico ou uma futura secretária.</li>
+        <li><span class="tag-confirm">confirmar</span>Códigos TUSS e materiais do <code>.docx</code> são o padrão atual e estão corretos (validar com o Cláudio — não vou assumir correção clínica/faturamento).</li>
+        <li><strong>Não é papel nosso</strong> decidir a regra ANS de especificação de marca; o sistema preserva a prática atual da clínica.</li>
+        <li><strong>Risco:</strong> catálogo desatualizado gera pedido errado → precisa de rotina de revisão e de dono.</li>
+        <li><strong>Risco de sobre-engenharia:</strong> começar pelo robusto antes do leve provar valor. Ordem da seção 10 mitiga.</li>
+      </ul>
+    </section>
+
+    <section class="sec" id="sec-10">
+      <div class="sec-head"><span class="sec-idx">10</span><h2>Entregáveis e ordem sugerida</h2></div>
+      <ol class="list">
+        <li><strong>Fase 0</strong> — mapa do processo + gargalos confirmados (base para tudo).</li>
+        <li><strong>Módulo B leve</strong> — biblioteca de descrições anonimizadas em página/pasta única (rápido, alto valor, baixo risco; resolve um pedido explícito dela).</li>
+        <li><strong>Módulo A leve</strong> — 3–5 <code>.docx</code> modelo dos procedimentos mais frequentes + ficha CCU como seleção.</li>
+        <li><strong>Módulo C leve</strong> — planilha de acompanhamento de autorização.</li>
+        <li><strong>Módulo A robusto</strong> — gerador digital (ficha → documento) para os procedimentos mais frequentes, expandindo o catálogo.</li>
+        <li><strong>Módulo D</strong> — spec de captação, depois do baseline de medição existir.</li>
+      </ol>
+    </section>
+
+  </article>
+</div>
+
+<footer>
+  <p>SyncLab · Documento interno de trabalho</p>
+</footer>
+
+</body>
+</html>
